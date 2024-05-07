@@ -196,8 +196,8 @@ void main()
     vec3 normal = normalize(fs_in.normalWS);
     vec3 viewDir = normalize(cameraPos - fs_in.posWS);
 
-    vec3 finalColor = calcDirectionLight(directionLight, normal, viewDir);
-
+    // vec3 finalColor = calcDirectionLight(directionLight, normal, viewDir);
+    vec3 finalColor = vec3(0.0);
     for(int i = 0; i < pointLightCount; i++){
         finalColor += calcPointLight(pointLights[i], normal, viewDir, fs_in.posWS);
     }

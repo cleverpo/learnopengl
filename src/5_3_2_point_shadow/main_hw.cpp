@@ -119,17 +119,19 @@ int main(){
     matModelCubeBg = glm::translate(matModelCubeBg, glm::vec3(0.0f, -0.5f, 0.0));
     matModelCubeBg = glm::scale(matModelCubeBg, glm::vec3(1.0f, 0.25f, 1.0f));
 
+
     //光照
-    DirectionLightParameters lightParam;
-    lightParam.position = glm::vec3(-2.0f, 4.0f, -1.0f);
+    PointLightParameters lightParam;
+    lightParam.position = glm::vec3(0.0f);
     lightParam.color = glm::vec3(1.0f);
-    lightParam.direction = glm::vec3(-1.0f, -1.0f, 0.0f);
+    lightParam.attenuationFactor1 = 1.0f;
+    lightParam.attenuationFactor2 = 0.09f;
+    lightParam.attenuationFactor3 = 0.032f;
 
-    DirectionLight light(lightParam);
+    PointLight light(lightParam);
+
     shader.use();
-    light.apply(shader);
-
-    shader.setInt("pointLightCount", 0);
+    shader.setInt("pointLightCount", 1);
     shader.setFloat("shininess", 64.0);
 
     //阴影
@@ -162,34 +164,27 @@ int main(){
         processInput(window);
 
         //渲染深度贴图
-        glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-        glBindFramebuffer(GL_FRAMEBUFFER, shadowMappingFBO);
-        glClear(GL_DEPTH_BUFFER_BIT);
-        // glClearColor(0.2f, 0.1f, 0.6f, 1.0f);
-        // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glCullFace(GL_FRONT);
+        // glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+        // glBindFramebuffer(GL_FRAMEBUFFER, shadowMappingFBO);
+        // glClear(GL_DEPTH_BUFFER_BIT);
+        // // glClearColor(0.2f, 0.1f, 0.6f, 1.0f);
+        // // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        // glCullFace(GL_FRONT);
 
-        shadowMappingShader.use();
-        light.applyLightSpaceMatrix(shadowMappingShader);
-        shadowMappingShader.setMat4("model", glm::value_ptr(matModelPlane));
-
-        plane.draw(shadowMappingShader);
+        // shadowMappingShader.use();
         
-        for(unsigned int i = 0; i < 3; i++){
-            shadowMappingShader.setMat4("model", glm::value_ptr(matModelCubes[i]));
-            cube.draw(shadowMappingShader);
-        }
+        // light.applyLightSpaceMatrix(shadowMappingShader);
+        // shadowMappingShader.setMat4("model", glm::value_ptr(matModelPlane));
 
-        shadowMappingShader.setMat4("model", glm::value_ptr(matModelCubeBg));
-        cubeBg.draw(shadowMappingShader);
+        // plane.draw(shadowMappingShader);
+        
+        // for(unsigned int i = 0; i < 3; i++){
+        //     shadowMappingShader.setMat4("model", glm::value_ptr(matModelCubes[i]));
+        //     cube.draw(shadowMappingShader);
+        // }
 
-        //正常渲染
-        // glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        // glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-        // glClearColor(0.2f, 0.1f, 0.6f, 1.0f);
-        // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        // drawDebugTexture(depthMapTex);
+        // shadowMappingShader.setMat4("model", glm::value_ptr(matModelCubeBg));
+        // cubeBg.draw(shadowMappingShader);
         
         //正常渲染
         glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -209,7 +204,8 @@ int main(){
         shader.setInt("depthMap", 8);
         glActiveTexture(GL_TEXTURE0 + 8);
         glBindTexture(GL_TEXTURE_2D, depthMapTex);
-
+        
+        light.apply(shader, 0);
         light.applyLightSpaceMatrix(shader);
 
         plane.draw(shader);

@@ -46,19 +46,6 @@ public:
         this->updateMatrix();
     }
 
-    //渲染光源
-    void render(const Camera& camera){
-        shader.use();
-        shader.setMat4("model", glm::value_ptr(this->matrix));
-        shader.setMat4("view", glm::value_ptr(camera.matView));
-        shader.setMat4("projection", glm::value_ptr(camera.matProjection));
-        shader.setVec3("lightColor", glm::value_ptr(color));
-
-        glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-        glBindVertexArray(0);
-    }
-
     //提交数据
     void apply(Shader& shader, unsigned int index){
         glm::vec3 ambient = color * glm::vec3(0.2f);
@@ -76,6 +63,33 @@ public:
         shader.setVec3(prefix + ".ambient", glm::value_ptr(ambient));
         shader.setVec3(prefix + ".diffuse", glm::value_ptr(diffuse));
         shader.setVec3(prefix + ".specular", glm::value_ptr(specular));
+    }
+
+    //光照空间的变换矩阵
+    void applyLightSpaceMatrix(Shader& shader, float aspect){
+        glm::mat4 lightProjectionMat, lightViewMat;
+        glm::mat4 lightSpaceMat;
+
+        float near_plane = 1.0f, far_plane = 25.0f;
+        lightProjectionMat = glm::perspective(glm::radians(90.0f), aspect, near_plane, far_plane);
+        lightViewMat = glm::lookAt(position, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
+        // lightViewMat = glm::lookAt(glm::vec3(0.0f), glm::normalize(direction), glm::vec3(0.0, 1.0, 0.0));
+        lightSpaceMat = lightProjectionMat * lightViewMat;
+
+        shader.setMat4("lightSpaceMatrix", glm::value_ptr(lightSpaceMat));
+    }
+
+    //渲染光源
+    void render(const Camera& camera){
+        shader.use();
+        shader.setMat4("model", glm::value_ptr(this->matrix));
+        shader.setMat4("view", glm::value_ptr(camera.matView));
+        shader.setMat4("projection", glm::value_ptr(camera.matProjection));
+        shader.setVec3("lightColor", glm::value_ptr(color));
+
+        glBindVertexArray(VAO);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glBindVertexArray(0);
     }
 
 private:
